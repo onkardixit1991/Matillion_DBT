@@ -36,7 +36,7 @@ pipeline:
       type: "sql-executor"
       transitions:
         success:
-        - "End Success"
+        - "Or 2"
         failure:
         - "Or"
       parameters:
@@ -73,6 +73,16 @@ pipeline:
       postProcessing:
         updateOutputMessage:
         updateScalarVariables:
+    Or 2:
+      type: "or"
+      transitions:
+        unconditional:
+        - "End Success"
+      parameters:
+        componentName: "Or 2"
+      postProcessing:
+        updateOutputMessage:
+        updateScalarVariables:
 design:
   components:
     Start:
@@ -102,6 +112,11 @@ design:
       tempMetlId: 5
     End Success:
       position:
-        x: -150
+        x: 30
         "y": -20
       tempMetlId: 6
+    Or 2:
+      position:
+        x: -150
+        "y": -20
+      tempMetlId: 7
