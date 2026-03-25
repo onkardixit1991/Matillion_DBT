@@ -1,0 +1,107 @@
+type: "orchestration"
+version: "1.0"
+pipeline:
+  components:
+    Start:
+      type: "start"
+      transitions:
+        unconditional:
+        - "SQL Script"
+      parameters:
+        componentName: "Start"
+    SQL Script:
+      type: "sql-executor"
+      transitions:
+        success:
+        - "Insert Data"
+        failure:
+        - "Or"
+      parameters:
+        componentName: "SQL Script"
+        scriptLocation: "Component"
+        declareSqlVariables: "Include selected"
+        variablesToInclude:
+        enableVariableResolution: "No"
+        sqlScript: |
+          CREATE OR REPLACE TABLE test_db.test_schema.new_table(
+            id INT AUTOINCREMENT,
+            name VARCHAR,
+            created_date TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
+            modified_date TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+          );
+      postProcessing:
+        updateOutputMessage:
+        updateScalarVariables:
+    Insert Data:
+      type: "sql-executor"
+      transitions:
+        success:
+        - "End Success"
+        failure:
+        - "Or"
+      parameters:
+        componentName: "Insert Data"
+        scriptLocation: "Component"
+        sqlScript: |
+          INSERT INTO TEST_DB.TEST_SCHEMA.new_table (name, created_date, modified_date) VALUES
+          ('Alice', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP()),
+          ('Bob', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP()),
+          ('Charlie', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP()),
+          ('Diana', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP()),
+          ('Edward', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP());
+    Or:
+      type: "or"
+      transitions:
+        unconditional:
+        - "End Failure"
+      parameters:
+        componentName: "Or"
+      postProcessing:
+        updateOutputMessage:
+        updateScalarVariables:
+    End Failure:
+      type: "end-failure"
+      parameters:
+        componentName: "End Failure"
+      postProcessing:
+        updateOutputMessage:
+        updateScalarVariables:
+    End Success:
+      type: "end-success"
+      parameters:
+        componentName: "End Success"
+      postProcessing:
+        updateOutputMessage:
+        updateScalarVariables:
+design:
+  components:
+    Start:
+      position:
+        x: -630
+        "y": -20
+      tempMetlId: 1
+    SQL Script:
+      position:
+        x: -470
+        "y": -20
+      tempMetlId: 2
+    Insert Data:
+      position:
+        x: -310
+        "y": -20
+      tempMetlId: 3
+    Or:
+      position:
+        x: -340
+        "y": 110
+      tempMetlId: 4
+    End Failure:
+      position:
+        x: -180
+        "y": 110
+      tempMetlId: 5
+    End Success:
+      position:
+        x: -150
+        "y": -20
+      tempMetlId: 6
