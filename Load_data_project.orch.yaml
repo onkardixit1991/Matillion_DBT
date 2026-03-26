@@ -1,0 +1,150 @@
+type: "orchestration"
+version: "1.0"
+pipeline:
+  components:
+    Start:
+      type: "start"
+      transitions:
+        unconditional:
+        - "Google Sheets"
+        - "Google Sheets 2"
+      parameters:
+        componentName: "Start"
+    Google Sheets:
+      type: "modular-google-sheets-input-v0"
+      transitions:
+        success:
+        - "And"
+      skipped: true
+      parameters:
+        componentName: "Google Sheets"
+        componentId: "modular-google-sheets-input-v0"
+        inputId: "google-sheets-input-v0"
+        google-sheets-input-v0:
+          connection:
+            authType: "OAUTH_USER_TOKENS"
+            secretReferenceId: "google_data"
+          connectionOptions:
+          spreadsheetName: "Test_UserData - 1tYq_zLf3lN13wW7-tthDXwA6rb8mtRIUOdDn1kIys8Y"
+          containsHeaderRow: "Yes"
+          mode: "BASIC"
+          dataSource: "Test_UserData_sheet1"
+          cellRange:
+          dataSelection:
+          - "UserID"
+          - "UserName"
+          - "Country"
+          dataSourceFilter:
+          combineFilters: "AND"
+          limit:
+          autoDebug: "No"
+        outputId: "snowflake-output-connector-v0"
+        snowflake-output-connector-v0:
+          warehouse: "COMPUTE_WH"
+          database: "DEV_DB"
+          schema: "DEV_SCHEMA"
+          tableName: "User_data"
+          createTableMode: "FAIL_IF_EXISTS"
+          primaryKeys:
+          - "UserID"
+          cleanStagedFiles: "Yes"
+          stagePlatform: "SNOWFLAKE"
+          trimStringColumns: "No"
+          stringNullIsNull: "No"
+          snowflake#internalStageType: "USER"
+      postProcessing:
+        updateOutputMessage:
+        updateScalarVariables:
+    Google Sheets 2:
+      type: "modular-google-sheets-input-v0"
+      transitions:
+        success:
+        - "And"
+      parameters:
+        componentName: "Google Sheets 2"
+        componentId: "modular-google-sheets-input-v0"
+        inputId: "google-sheets-input-v0"
+        google-sheets-input-v0:
+          connection:
+            authType: "OAUTH_USER_TOKENS"
+            secretReferenceId: "google_data"
+          connectionOptions:
+          spreadsheetName: "snowflake_sample_posts - 1OEesHzo85IAB5Ep8q9MrsbwQHb52m3hzc5994hHF9Z8"
+          containsHeaderRow: "Yes"
+          mode: "BASIC"
+          dataSource: "snowflake_sample_posts_SampleData"
+          cellRange:
+          dataSelection:
+          - "Likes"
+          - "PostID"
+          - "PostTitle"
+          - "RowId"
+          - "UserID"
+          dataSourceFilter:
+          combineFilters: "AND"
+          limit:
+          autoDebug: "No"
+        outputId: "snowflake-output-connector-v0"
+        snowflake-output-connector-v0:
+          warehouse: "COMPUTE_WH"
+          database: "DEV_DB"
+          schema: "DEV_SCHEMA"
+          tableName: "Posts_Data"
+          createTableMode: "FAIL_IF_EXISTS"
+          primaryKeys:
+          - "PostID"
+          cleanStagedFiles: "Yes"
+          stagePlatform: "SNOWFLAKE"
+          trimStringColumns: "No"
+          stringNullIsNull: "No"
+          snowflake#internalStageType: "USER"
+      postProcessing:
+        updateOutputMessage:
+        updateScalarVariables:
+    And:
+      type: "and"
+      transitions:
+        unconditional:
+        - "Run Transformation"
+      parameters:
+        componentName: "And"
+      postProcessing:
+        updateOutputMessage:
+        updateScalarVariables:
+    Run Transformation:
+      type: "run-transformation"
+      parameters:
+        componentName: "Run Transformation"
+        transformationJob: "Trans_load_data.tran.yaml"
+        setScalarVariables:
+        setGridVariables:
+      postProcessing:
+        updateOutputMessage:
+        updateScalarVariables:
+design:
+  components:
+    Start:
+      position:
+        x: -340
+        "y": -30
+      tempMetlId: 1
+    Google Sheets:
+      position:
+        x: -200
+        "y": -160
+      tempMetlId: 2
+    Google Sheets 2:
+      position:
+        x: -180
+        "y": -30
+      tempMetlId: 3
+    And:
+      position:
+        x: 0
+        "y": -90
+      tempMetlId: 4
+    Run Transformation:
+      position:
+        x: 160
+        "y": -90
+      tempMetlId: 5
