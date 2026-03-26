@@ -16,6 +16,7 @@ pipeline:
         - "Insert Data"
         failure:
         - "Or"
+      skipped: true
       parameters:
         componentName: "SQL Script"
         scriptLocation: "Component"
@@ -36,9 +37,10 @@ pipeline:
       type: "sql-executor"
       transitions:
         success:
-        - "Or 2"
+        - "Python Pushdown"
         failure:
         - "Or"
+      skipped: true
       parameters:
         componentName: "Insert Data"
         scriptLocation: "Component"
@@ -83,6 +85,31 @@ pipeline:
       postProcessing:
         updateOutputMessage:
         updateScalarVariables:
+    Python Pushdown:
+      type: "python-pushdown"
+      transitions:
+        success:
+        - "Or 2"
+      parameters:
+        componentName: "Python Pushdown"
+        warehouse: "[Environment Default]"
+        externalAccessIntegrations:
+        pythonVersion: "3.10"
+        packagesGrid:
+        scriptLocation: "File"
+        scriptTimeout: "360"
+        fileName: "test.py"
+      postProcessing:
+        updateOutputMessage:
+        updateScalarVariables:
+  variables:
+    scalar_var:
+      metadata:
+        type: "TEXT"
+        description: ""
+        scope: "COPIED"
+        visibility: "PUBLIC"
+      defaultValue: ""
 design:
   components:
     Start:
@@ -117,6 +144,11 @@ design:
       tempMetlId: 6
     Or 2:
       position:
-        x: -150
+        x: -70
         "y": -20
       tempMetlId: 7
+    Python Pushdown:
+      position:
+        x: -180
+        "y": -20
+      tempMetlId: 8
