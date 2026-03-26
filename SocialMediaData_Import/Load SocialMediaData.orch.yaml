@@ -1,0 +1,141 @@
+type: "orchestration"
+version: "1.0"
+pipeline:
+  components:
+    Start:
+      type: "start"
+      transitions:
+        unconditional:
+        - "Excel Query"
+        - "Google Sheets Query"
+      parameters:
+        componentName: "Start"
+    Excel Query:
+      type: "excel-query"
+      transitions:
+        success:
+        - "And"
+      parameters:
+        componentName: "Excel Query"
+        basicAdvancedMode: "Basic"
+        storageType: "Amazon S3 Storage"
+        storageUrl: "s3://matillion-docs/Attachments/academy/socialmediadata.xlsx"
+        containsHeaderRow: "Yes"
+        cellRange:
+        connectionOptions:
+        dataSource: "posts"
+        dataSelection:
+        - "Likes"
+        - "PostID"
+        - "PostTitle"
+        - "RowId"
+        - "UserID"
+        dataSourceFilter:
+        combineFilters: "And"
+        limit:
+        type: "Standard"
+        primaryKeys:
+        warehouse: "[Environment Default]"
+        database: "[Environment Default]"
+        schema: "[Environment Default]"
+        targetTable: "posts"
+        stage: "[Custom]"
+        stagePlatform: "Snowflake Managed"
+        loadOptions:
+        autoDebug: "Off"
+    Google Sheets Query:
+      type: "google-sheets-query"
+      transitions:
+        success:
+        - "And"
+      parameters:
+        componentName: "Google Sheets Query"
+        basicAdvancedMode: "Basic"
+        authentication: "TimSheets"
+        spreadsheetName: "UserData"
+        containsHeaderRow: "Yes"
+        cellRange:
+        connectionOptions:
+        dataSource: "UserData_Sheet1"
+        dataSelection:
+        - "Country"
+        - "id"
+        - "UserID"
+        - "UserName"
+        dataSourceFilter:
+        combineFilters: "And"
+        limit: "1000"
+        type: "Standard"
+        primaryKeys:
+        warehouse1: "[Environment Default]"
+        database: "[Environment Default]"
+        schema: "[Environment Default]"
+        targetTable: "users"
+        stage1: "[Custom]"
+        stagePlatform: "Snowflake Managed"
+        loadOptions:
+        autoDebug: "Off"
+    And:
+      type: "and"
+      transitions:
+        unconditional:
+        - "Run Transformation"
+      parameters:
+        componentName: "And"
+    Run Transformation:
+      type: "run-transformation"
+      parameters:
+        componentName: "Run Transformation"
+        transformationJob: "SocialMediaData/Join Datasets"
+        setScalarVariables:
+        setGridVariables:
+design:
+  components:
+    Start:
+      position:
+        x: 0
+        "y": 0
+      tempMetlId: 1
+    Excel Query:
+      position:
+        x: 150
+        "y": 0
+      tempMetlId: 2
+    Google Sheets Query:
+      position:
+        x: 150
+        "y": 140
+      tempMetlId: 3
+    And:
+      position:
+        x: 320
+        "y": 0
+      tempMetlId: 4
+    Run Transformation:
+      position:
+        x: 440
+        "y": 0
+      tempMetlId: 5
+  notes:
+    "2":
+      position:
+        x: -100
+        "y": 250
+      size:
+        height: 328
+        width: 540
+      theme: "yellow"
+      content: |-
+        **Note!**
+
+        If you've imported this pipeline, you'll need to create your own Google OAuth to use the Google Sheets Query component.
+
+        1. Visit the Google Sheet below to have it shared to your account.
+
+        [UserData](https://docs.matillion.com/data-productivity-cloud/security/docs/roles-and-permissions/#roles-and-privileges)
+
+        1. Click the component and enter the **Authentication** property. Click **Manage** and follow the OAuth creation process.
+
+        2. When complete, select your new OAuth in this component.
+
+        The OAuth account must be the same as the account used to view/share the Google Sheets.

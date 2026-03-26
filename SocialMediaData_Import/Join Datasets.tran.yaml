@@ -1,0 +1,187 @@
+type: "transformation"
+version: "1.0"
+pipeline:
+  components:
+    posts:
+      type: "table-input"
+      parameters:
+        componentName: "posts"
+        database: "[Environment Default]"
+        schema: "[Environment Default]"
+        targetTable: "posts"
+        columnNames:
+        - "Likes"
+        - "PostID"
+        - "PostTitle"
+        - "RowId"
+        - "UserID"
+        timeOffset:
+    users:
+      type: "table-input"
+      parameters:
+        componentName: "users"
+        database: "[Environment Default]"
+        schema: "[Environment Default]"
+        targetTable: "users"
+        columnNames:
+        - "Country"
+        - "id"
+        - "UserID"
+        - "UserName"
+        timeOffset:
+    Convert Type:
+      type: "convert-type"
+      sources:
+      - "posts"
+      parameters:
+        componentName: "Convert Type"
+        conversions:
+        - - "Likes"
+          - "NUMBER"
+          - ""
+          - ""
+        - - "UserID"
+          - "NUMBER"
+          - ""
+          - ""
+    Join:
+      type: "join"
+      sources:
+      - "Convert Type"
+      - "users"
+      parameters:
+        componentName: "Join"
+        mainTable: "Convert Type"
+        mainTableAlias: "posts"
+        joins:
+        - - "users"
+          - "users"
+          - "Inner"
+        joinExpressions:
+        - - "\"posts\".\"UserID\" = \"users\".\"UserID\""
+          - "posts_Inner_users"
+        columnMappings:
+        - - "posts.Likes"
+          - "Likes"
+        - - "posts.PostTitle"
+          - "PostTitle"
+        - - "users.Country"
+          - "Country"
+        - - "users.UserName"
+          - "UserName"
+    Rewrite Table:
+      type: "rewrite-table"
+      sources:
+      - "Join"
+      parameters:
+        componentName: "Rewrite Table"
+        warehouse: "[Environment Default]"
+        database: "[Environment Default]"
+        schema: "[Environment Default]"
+        targetTable: "socialmedia_output"
+        orderBy:
+    Rank Countries:
+      type: "rank"
+      sources:
+      - "Aggregate Likes"
+      parameters:
+        componentName: "Rank Countries"
+        includeInputColumns: "Yes"
+        partitionData:
+        orderingWithinPartitions:
+        - - "sum_Likes"
+          - "Descending"
+        functions:
+        - - "Rank"
+          - "CountryRank"
+    Aggregate Likes:
+      type: "aggregate"
+      sources:
+      - "Join"
+      parameters:
+        componentName: "Aggregate Likes"
+        groupings:
+        - "Country"
+        aggregations:
+        - - "Likes"
+          - "Sum"
+        groupingType: "Group By"
+    Country Likes Ranking:
+      type: "rewrite-table"
+      sources:
+      - "Rank Countries"
+      parameters:
+        componentName: "Country Likes Ranking"
+        warehouse: "[Environment Default]"
+        database: "[Environment Default]"
+        schema: "[Environment Default]"
+        targetTable: "CountryLikesRanking"
+        orderBy:
+design:
+  components:
+    posts:
+      position:
+        x: 0
+        "y": 0
+      tempMetlId: 1
+    users:
+      position:
+        x: 0
+        "y": 170
+      tempMetlId: 2
+    Convert Type:
+      position:
+        x: 170
+        "y": 0
+      tempMetlId: 3
+    Join:
+      position:
+        x: 350
+        "y": 0
+      tempMetlId: 4
+    Rewrite Table:
+      position:
+        x: 520
+        "y": 0
+      tempMetlId: 5
+    Rank Countries:
+      position:
+        x: 740
+        "y": 150
+      tempMetlId: 7
+    Aggregate Likes:
+      position:
+        x: 520
+        "y": 150
+      tempMetlId: 8
+    Country Likes Ranking:
+      position:
+        x: 970
+        "y": 150
+      tempMetlId: 9
+  notes:
+    "1":
+      position:
+        x: 1070
+        "y": -150
+      size:
+        height: 650
+        width: 460
+      theme: "white"
+      content: "### **posts**\nThe **posts** component is a table input that reads\
+        \ data from the posts table in the default database and schema. It selects\
+        \ the Likes, PostID, PostTitle, RowId and UserID columns.\n\n### **users**\
+        \  \nThe **users** component is also a table input that reads data from the\
+        \ users table in the default database and schema. It selects the Country,\
+        \ id, UserID and UserName columns.\n\n### **Convert Type**\nThe **Convert\
+        \ Type** component converts the data types of the Likes and UserID columns\
+        \ from the posts source to numbers.\n\n### **Join** \nThe **Join** component\
+        \ performs an inner join between the **Convert Type** and **users** sources\
+        \ on the UserID column. It maps the selected columns to new names.\n\n###\
+        \ **Rewrite Table**\nThe **Rewrite Table** component rewrites the data to\
+        \ a new target table called socialmedia_output in the default database and\
+        \ schema.\n\n### **Country Likes Aggregation**\nThe **Country Likes Aggregation**\
+        \ component aggregates the data by Country, summing the Likes values. \n\n\
+        ### **Rank Countries**  \nThe **Rank Countries** component ranks the countries\
+        \ based on the summed likes from the previous aggregation, assigning a CountryRank\
+        \ value in descending order."
