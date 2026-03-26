@@ -82,6 +82,46 @@ pipeline:
       postProcessing:
         updateOutputMessage:
         updateScalarVariables:
+    Sum Likes By Country:
+      type: "aggregate"
+      sources:
+      - "Join"
+      parameters:
+        componentName: "Sum Likes By Country"
+        groupings:
+        - "Country"
+        aggregations:
+        - - "Likes"
+          - "Sum"
+        groupingType: "Group By"
+    Rank Countries:
+      type: "rank"
+      sources:
+      - "Sum Likes By Country"
+      parameters:
+        componentName: "Rank Countries"
+        includeInputColumns: "Yes"
+        partitionData:
+        orderingWithinPartitions:
+        - - "sum_Likes"
+          - "Descending"
+        functions:
+        - - "Dense Rank"
+          - "Country_Rank"
+    Output Country Rankings:
+      type: "rewrite-table"
+      sources:
+      - "Rank Countries"
+      parameters:
+        componentName: "Output Country Rankings"
+        warehouse: "COMPUTE_WH"
+        database: "DEV_DB"
+        schema: "DEV_SCHEMA"
+        targetTable: "Country_Likes_Ranking"
+        orderBy:
+      postProcessing:
+        updateOutputMessage:
+        updateScalarVariables:
 design:
   components:
     User_Data_Input:
@@ -109,3 +149,28 @@ design:
         x: 170
         "y": -30
       tempMetlId: 5
+    Sum Likes By Country:
+      position:
+        x: 170
+        "y": 70
+      tempMetlId: 6
+    Rank Countries:
+      position:
+        x: 330
+        "y": 70
+      tempMetlId: 7
+    Output Country Rankings:
+      position:
+        x: 490
+        "y": 70
+      tempMetlId: 8
+  notes:
+    "1":
+      position:
+        x: 610
+        "y": -110
+      size:
+        height: 420
+        width: 300
+      theme: "white"
+      content: ""
